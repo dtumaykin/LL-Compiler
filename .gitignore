@@ -11,3 +11,7 @@
 _ReSharper.*
 *.resharper
 Ankh.NoLoad
+*.dll
+*.pdb
+*.trx
+*.dat

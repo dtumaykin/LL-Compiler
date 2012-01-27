@@ -3,6 +3,8 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using LLCompiler;
+using LLCompiler.Lexer;
 
 namespace LLCompilerTests
 {
@@ -15,5 +17,16 @@ namespace LLCompilerTests
             Console.Write("Hello world!");
             Console.Read();
         }
+
+        [TestMethod]
+        public void LexerStringTest()
+        {
+            Lexer lx = new Lexer();
+            foreach (IToken tk in lx.ProcessString("(a c 12)"))
+            {
+                Console.Write(tk.TokenType.ToString());
+            }
+        }
     }
 }
+    

@@ -48,6 +48,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GlobalTests.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LLCompiler\LLCompiler.csproj">
+      <Project>{68484862-9756-477A-8F36-DF38355971EC}</Project>
+      <Name>LLCompiler</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

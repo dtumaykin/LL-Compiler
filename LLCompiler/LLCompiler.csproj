@@ -40,11 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Lexer\Lexer.cs" />
+    <Compile Include="Lexer\Token.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGenerator\" />
-    <Folder Include="Lexer\" />
     <Folder Include="Parser\" />
     <Folder Include="SemanticAnalyzer\" />
   </ItemGroup>
