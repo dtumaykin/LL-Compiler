@@ -23,7 +23,7 @@ namespace LLCompiler.Lexer
                     while (i + 1 < str.Length && char.IsLetter(str[i + 1]))
                         tk.Append(str[++i]);
 
-                    yield return new IdentifierToken { name = tk.ToString() };
+                    yield return new IdentifierToken { Name = tk.ToString() };
                     continue;
                 }
 
@@ -34,7 +34,7 @@ namespace LLCompiler.Lexer
                     while (i + 1 < str.Length && char.IsDigit(str[i + 1]))
                         integer.Append(str[++i]);
 
-                    yield return new IntegerConstantToken { value = int.Parse(integer.ToString()) };
+                    yield return new IntegerConstantToken { Value = int.Parse(integer.ToString()) };
                     continue;
                 }
 
@@ -56,7 +56,7 @@ namespace LLCompiler.Lexer
                 // char token
                 if (str[i] == '\'')
                 {
-                    yield return new CharConstantToken { value = str[++i] }; // yield char
+                    yield return new CharConstantToken { Value = str[++i] }; // yield char
                     i++; // remove last '
                     continue;
                 }
@@ -67,7 +67,7 @@ namespace LLCompiler.Lexer
                     StringBuilder strtk = new StringBuilder();
                     while (i + 1 < str.Length && str[i + 1] != '\"')
                         strtk.Append(str[++i]);
-                    yield return new StringConstantToken { value = strtk.ToString() };
+                    yield return new StringConstantToken { Value = strtk.ToString() };
                     i++; // remove last "
                     continue;
                 }

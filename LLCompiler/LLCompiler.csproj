@@ -43,6 +43,7 @@
     <Compile Include="Lexer\Lexer.cs" />
     <Compile Include="Lexer\LexerException.cs" />
     <Compile Include="Lexer\Token.cs" />
+    <Compile Include="Parser\ParsedValue.cs" />
     <Compile Include="Parser\Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

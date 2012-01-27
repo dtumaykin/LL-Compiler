@@ -31,7 +31,7 @@ namespace LLCompiler.Lexer
 
     class IntegerConstantToken : IToken
     {
-        public int value { get; set; }
+        public int Value { get; set; }
 
         TokenTypes IToken.TokenType
         {
@@ -41,7 +41,7 @@ namespace LLCompiler.Lexer
 
     class CharConstantToken : IToken
     {
-        public char value { get; set; }
+        public char Value { get; set; }
 
         TokenTypes IToken.TokenType
         {
@@ -51,7 +51,7 @@ namespace LLCompiler.Lexer
 
     class StringConstantToken : IToken
     {
-        public string value { get; set; }
+        public string Value { get; set; }
 
         TokenTypes IToken.TokenType
         {
@@ -61,7 +61,7 @@ namespace LLCompiler.Lexer
 
     class IdentifierToken : IToken
     {
-        public string name { get; set; }
+        public string Name { get; set; }
 
         TokenTypes IToken.TokenType
         {
