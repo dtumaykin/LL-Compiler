@@ -38,15 +38,41 @@ namespace LLCompiler.Lexer
                 }
 
                 // parenthese token
-                switch (str[i])
+                if (str[i] == '(' || str[i] == ')')
                 {
-                    case '(':
-                        yield return new ParentheseToken { isOpening = true };
-                        break;
-                    case ')':
-                        yield return new ParentheseToken { isOpening = false };
-                        break;
+                    switch (str[i])
+                    {
+                        case '(':
+                            yield return new ParentheseToken { isOpening = true };
+                            break;
+                        case ')':
+                            yield return new ParentheseToken { isOpening = false };
+                            break;
+                    }
+                    continue;
                 }
+
+                // char token
+                if (str[i] == '\'')
+                {
+                    yield return new CharConstantToken { value = str[++i] }; // yield char
+                    i++; // remove last '
+                    continue;
+                }
+
+                // string token
+                if (str[i] == '\"')
+                {
+                    StringBuilder strtk = new StringBuilder();
+                    while (i + 1 < str.Length && str[i + 1] != '\"')
+                        strtk.Append(str[++i]);
+                    yield return new StringConstantToken { value = strtk.ToString() };
+                    i++; // remove last "
+                    continue;
+                }
+
+                // if we reach this point, the token is unknown -> exception
+                throw new LexerException("Lexer: Unkown token!");
             }
 
             
