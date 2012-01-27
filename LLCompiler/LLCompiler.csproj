@@ -43,12 +43,15 @@
     <Compile Include="Lexer\Lexer.cs" />
     <Compile Include="Lexer\LexerException.cs" />
     <Compile Include="Lexer\Token.cs" />
+    <Compile Include="Parser\Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGenerator\" />
-    <Folder Include="Parser\" />
     <Folder Include="SemanticAnalyzer\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CDs\ITokenLexer.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -8,15 +8,16 @@ namespace LLCompiler.Lexer
 
     public class Lexer
     {
-        public IEnumerable<IToken> ProcessString(string str)
+        public static IEnumerable<IToken> ProcessString(string str)
         {
+            char[] ops = { '+', '-', '/', '*' };
             for(int i = 0; i < str.Length; i++)
             {
                 if(char.IsWhiteSpace(str[i]))
                     continue;
 
                 // identifier token
-                if(char.IsLetter(str[i]))
+                if(char.IsLetter(str[i]) || Array.IndexOf(ops, str[i]) != -1)
                 {
                     StringBuilder tk = new StringBuilder(str[i].ToString());
                     while (i + 1 < str.Length && char.IsLetter(str[i + 1]))

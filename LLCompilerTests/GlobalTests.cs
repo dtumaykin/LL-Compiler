@@ -21,8 +21,7 @@ namespace LLCompilerTests
         [TestMethod]
         public void LexerStringTest()
         {
-            Lexer lx = new Lexer();
-            foreach (IToken tk in lx.ProcessString("(a c 12 'b' \"testing\")"))
+            foreach (IToken tk in Lexer.ProcessString("(+ a c 12 'b' \"testing\")"))
             {
                 Console.Write(tk.TokenType.ToString());
             }
