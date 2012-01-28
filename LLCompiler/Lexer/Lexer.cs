@@ -20,7 +20,7 @@ namespace LLCompiler.Lexer
                 if(char.IsLetter(str[i]) || Array.IndexOf(ops, str[i]) != -1)
                 {
                     StringBuilder tk = new StringBuilder(str[i].ToString());
-                    while (i + 1 < str.Length && char.IsLetter(str[i + 1]))
+                    while (i + 1 < str.Length && char.IsLetterOrDigit(str[i + 1]))
                         tk.Append(str[++i]);
 
                     yield return new IdentifierToken { Name = tk.ToString() };
@@ -73,7 +73,7 @@ namespace LLCompiler.Lexer
                 }
 
                 // if we reach this point, the token is unknown -> exception
-                throw new LexerException("Lexer: Unkown token!");
+                throw new Exception("Lexer: Unkown token!");
             }
 
             

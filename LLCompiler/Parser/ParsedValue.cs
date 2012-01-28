@@ -7,7 +7,7 @@ namespace LLCompiler.Parser
 {
     public enum ParsedValuesTypes
     {
-        PARSEDFUNCALL,
+        PARSEDSEXPR,
         PARSEDINTEGERCONST,
         PARSEDCHARCONST,
         PARSEDSTRINGCONST,
@@ -16,19 +16,17 @@ namespace LLCompiler.Parser
 
     public interface IParsedValue
     {
-        public ParsedValuesTypes ParsedValueType { get; }
-    }
+        ParsedValuesTypes ParsedValueType { get; }
+    } 
 
-    class ParsedFunCall : IParsedValue
+    class ParsedSExpr : IParsedValue
     {
-        public ParsedIdentifier Name { get; set; }
+        public List<IParsedValue> Members { get; set; }
 
         public ParsedValuesTypes ParsedValueType
         {
-            get { return ParsedValuesTypes.PARSEDFUNCALL; }
+            get { return ParsedValuesTypes.PARSEDSEXPR; }
         }
-
-        public List<IParsedValue> Parameteres { get; set; }
     }
 
     class ParsedIntegerConst : IParsedValue
