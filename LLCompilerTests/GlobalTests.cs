@@ -2,10 +2,12 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using LLCompiler;
 using LLCompiler.Lexer;
 using LLCompiler.Parser;
+using LLCompiler.SemanticAnalyzer;
 
 namespace LLCompilerTests
 {
@@ -36,6 +38,19 @@ namespace LLCompilerTests
                 Console.WriteLine(pvl.ParsedValueType.ToString());
             }
         }
+
+        [TestMethod]
+        public void ReadFromFileAndTryToParse()
+        {
+            string content = File.ReadAllText(@"D:\sources\intel_ws2012\LL-Compiler\LLCompilerTests\input.txt");
+
+            SemanticAnalyzer anal = new SemanticAnalyzer();
+
+            var tokens = Lexer.ProcessString(content);
+
+            var values = Parser.ProcessTokens(tokens);
+            anal.CreateSymbolTable(values);
+
+        }
     }
 }
-    

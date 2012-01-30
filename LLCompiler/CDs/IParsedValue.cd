@@ -1,22 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="LLCompiler.Parser.ParsedFunCall" BaseTypeListCollapsed="true">
-    <Position X="4.25" Y="2.75" Width="1.5" />
+  <Class Name="LLCompiler.Parser.ParsedSExpr" BaseTypeListCollapsed="true">
+    <Position X="5" Y="4.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAACAAAAAAAAAAAAAAAAQAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAA=</HashCode>
       <FileName>Parser\ParsedValue.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="LLCompiler.Parser.ParsedIntegerConst" BaseTypeListCollapsed="true">
-    <Position X="2.75" Y="4.25" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
-      <FileName>Parser\ParsedValue.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" />
-  </Class>
-  <Class Name="LLCompiler.Parser.ParsedCharConst" BaseTypeListCollapsed="true">
     <Position X="2.75" Y="2.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
@@ -24,8 +16,16 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
+  <Class Name="LLCompiler.Parser.ParsedCharConst" BaseTypeListCollapsed="true">
+    <Position X="5.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Parser\ParsedValue.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
   <Class Name="LLCompiler.Parser.ParsedStringConst" BaseTypeListCollapsed="true">
-    <Position X="5.75" Y="4.25" Width="1.5" />
+    <Position X="7.25" Y="2.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
       <FileName>Parser\ParsedValue.cs</FileName>
@@ -33,7 +33,7 @@
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="LLCompiler.Parser.ParsedIdentifier" BaseTypeListCollapsed="true">
-    <Position X="5.75" Y="2.75" Width="1.5" />
+    <Position X="4.25" Y="2.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAACAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Parser\ParsedValue.cs</FileName>
@@ -48,9 +48,9 @@
     </TypeIdentifier>
   </Interface>
   <Enum Name="LLCompiler.Parser.ParsedValuesTypes">
-    <Position X="0.5" Y="3.75" Width="1.5" />
+    <Position X="0.5" Y="4" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAEQAAAAAAAAAAQAAAQAAAAAAIAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAEAAAACAAAAAAQAAAQAAAAAAIAAAAAAA=</HashCode>
       <FileName>Parser\ParsedValue.cs</FileName>
     </TypeIdentifier>
   </Enum>

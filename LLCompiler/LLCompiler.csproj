@@ -45,14 +45,15 @@
     <Compile Include="Parser\ParsedValue.cs" />
     <Compile Include="Parser\Parser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SemanticAnalyzer\FunctionDefinition.cs" />
+    <Compile Include="SemanticAnalyzer\SemanticAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="CodeGenerator\" />
-    <Folder Include="SemanticAnalyzer\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CDs\ITokenLexer.cd" />
-    <None Include="CDs\ParsedValue.cd" />
+    <None Include="CDs\IParsedValue.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
