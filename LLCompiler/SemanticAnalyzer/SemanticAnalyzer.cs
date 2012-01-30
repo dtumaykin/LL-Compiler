@@ -8,7 +8,14 @@ namespace LLCompiler.SemanticAnalyzer
 {
     public class SemanticAnalyzer
     {
-        public Dictionary<string, FunctionDefinition> FuncTable { get; set; }
+        private Dictionary<string, FunctionDefinition> FuncTable;
+        private bool FuncTablePopulated;
+
+        public SemanticAnalyzer()
+        {
+            FuncTable = new Dictionary<string, FunctionDefinition>();
+            FuncTablePopulated = false;
+        }
 
         /// <summary>
         /// Creates symbol table from a list of IParsedValue
@@ -63,6 +70,23 @@ namespace LLCompiler.SemanticAnalyzer
 
                 // add to symbol table
                 FuncTable[newFunc.Name] = newFunc;
+            }
+
+            FuncTablePopulated = true;
+        }
+
+        /// <summary>
+        /// Validates function calls, looks for undefined symbols.
+        /// </summary>
+        public void ValidateFuncCalls()
+        {
+            foreach(var func in FuncTable.Values)
+            {
+                // library function
+                if (func.Body == null)
+                    continue;
+
+
             }
         }
 
