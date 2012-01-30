@@ -16,7 +16,7 @@ namespace LLCompiler.SemanticAnalyzer
         /// <param name="funcs"></param>
         public void CreateSymbolTable(IEnumerable<IParsedValue> funcs)
         {
-            FuncTable = new Dictionary<string, FunctionDefinition>();
+            InitFuncTable();
 
             foreach (IParsedValue func in funcs)
             {
@@ -64,6 +64,27 @@ namespace LLCompiler.SemanticAnalyzer
                 // add to symbol table
                 FuncTable[newFunc.Name] = newFunc;
             }
+        }
+
+        /// <summary>
+        /// Adds standart library function into symbol table
+        /// </summary>
+        private void InitFuncTable()
+        {
+            FuncTable = new Dictionary<string, FunctionDefinition>();
+
+            FuncTable["+"] = new FunctionDefinition
+            {
+                Name = "+",
+                RetType = VarType.Integer,
+                Arguments = new Dictionary<string, VarType>() { 
+                    { "op1", VarType.Integer },
+                    { "op2", VarType.Integer }
+                },
+                Body = null
+            };
+
+            
         }
 
     }
