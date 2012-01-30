@@ -44,12 +44,12 @@ namespace LLCompilerTests
         {
             string content = File.ReadAllText(@"D:\sources\intel_ws2012\LL-Compiler\LLCompilerTests\input.txt");
 
-            SemanticAnalyzer anal = new SemanticAnalyzer();
+            SemanticAnalyzer an = new SemanticAnalyzer();
 
             var tokens = Lexer.ProcessString(content);
 
             var values = Parser.ProcessTokens(tokens);
-            anal.CreateSymbolTable(values);
+            an.CreateSymbolTable(values);
 
         }
     }
