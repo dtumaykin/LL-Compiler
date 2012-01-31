@@ -10,14 +10,14 @@ namespace LLCompiler.Lexer
     {
         public static IEnumerable<IToken> ProcessString(string str)
         {
-            char[] ops = { '+', '-', '/', '*' };
+            char[] ops = { '+', '-', '/', '*', '>' };
             for(int i = 0; i < str.Length; i++)
             {
                 if(char.IsWhiteSpace(str[i]))
                     continue;
 
                 // identifier token
-                if(char.IsLetter(str[i]) || Array.IndexOf(ops, str[i]) != -1)
+                if(char.IsLetter(str[i]) || char.IsSymbol(str[i]) || Array.IndexOf(ops, str[i]) != -1)
                 {
                     StringBuilder tk = new StringBuilder(str[i].ToString());
                     while (i + 1 < str.Length && char.IsLetterOrDigit(str[i + 1]))

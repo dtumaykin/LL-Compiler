@@ -49,7 +49,9 @@ namespace LLCompilerTests
             var tokens = Lexer.ProcessString(content);
 
             var values = Parser.ProcessTokens(tokens);
+
             an.CreateSymbolTable(values);
+            an.ValidateFuncCalls();
 
         }
     }
