@@ -8,6 +8,7 @@ namespace LLCompiler.Parser
     public enum ParsedValuesTypes
     {
         PARSEDSEXPR,
+        PARSEDCOND,
         PARSEDINTEGERCONST,
         PARSEDCHARCONST,
         PARSEDSTRINGCONST,
@@ -27,6 +28,14 @@ namespace LLCompiler.Parser
         {
             get { return ParsedValuesTypes.PARSEDSEXPR; }
         }
+
+        public override string ToString()
+        {
+            string t = "[";
+            foreach (var x in Members) t += x.ToString() + " ";
+            t += "]";
+            return t;
+        }
     }
 
     class ParsedIntegerConst : IParsedValue
@@ -36,6 +45,10 @@ namespace LLCompiler.Parser
         public ParsedValuesTypes ParsedValueType
         {
             get { return ParsedValuesTypes.PARSEDINTEGERCONST; }
+        }
+        public override string ToString()
+        {
+            return "i"+Value.ToString();
         }
     }
 
@@ -47,6 +60,10 @@ namespace LLCompiler.Parser
         {
             get { return ParsedValuesTypes.PARSEDCHARCONST; }
         }
+        public override string ToString()
+        {
+            return "c'" + Value.ToString()+"'";
+        }
     }
 
     class ParsedStringConst : IParsedValue
@@ -57,6 +74,10 @@ namespace LLCompiler.Parser
         {
             get { return ParsedValuesTypes.PARSEDSTRINGCONST; }
         }
+        public override string ToString()
+        {
+            return "s\"" + Value + "\"";
+        }        
     }
 
     class ParsedIdentifier: IParsedValue
@@ -67,5 +88,33 @@ namespace LLCompiler.Parser
         {
             get { return ParsedValuesTypes.PARSEDIDENTIFIER; }
         }
+
+        public override string ToString()
+        {
+            return "@" + Name;
+        }        
+    }
+
+
+    public struct CondClause
+    {
+        public IParsedValue Condition { get; set; }
+        public IParsedValue Result { get; set; }
+    }
+
+    public class ParsedCondExpression : IParsedValue
+    {
+        public List<CondClause> Clauses { get; set; }
+
+        public ParsedCondExpression() { Clauses = new List<CondClause>(); }
+
+        public ParsedValuesTypes ParsedValueType
+        {
+            get { return ParsedValuesTypes.PARSEDCOND; }
+        }
+        public override string ToString()
+        {
+            return "cond";
+        }        
     }
 }

@@ -13,7 +13,8 @@ namespace LLCompiler.SemanticAnalyzer
         Integer,
         Char,
         String,
-        List
+        List,
+        Nothing
     }
 
     public class FunctionDefinition
@@ -31,4 +32,5 @@ namespace LLCompiler.SemanticAnalyzer
             RetType = VarType.Any;
         }
     }
+
 }
