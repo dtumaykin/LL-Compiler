@@ -145,7 +145,17 @@ namespace LLCompiler.CodeGenerator
                     }
                     else
                     {
-                        result += GenerateCCode(FuncDefs[calledFuncName].Body);
+                        result += "( " + calledFuncName + "( ";
+
+                        bool x = false;
+                        foreach (var a in temp)
+                        {
+                            if (x) result += ",";
+                            x = true;
+                            result += GenerateCCode(a);
+                        }
+
+                        result += "))";
                     }
                     break;
                 case ParsedValuesTypes.PARSEDINTEGERCONST:
