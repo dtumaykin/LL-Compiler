@@ -40,6 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeGenerator\CodeGenerator.cs" />
+    <Compile Include="CodeGenerator\GeneratedFunction.cs" />
     <Compile Include="Lexer\Lexer.cs" />
     <Compile Include="Lexer\Token.cs" />
     <Compile Include="Parser\ParsedValue.cs" />
@@ -48,9 +50,7 @@
     <Compile Include="SemanticAnalyzer\FunctionDefinition.cs" />
     <Compile Include="SemanticAnalyzer\SemanticAnalyzer.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="CodeGenerator\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="CDs\ITokenLexer.cd" />
     <None Include="CDs\IParsedValue.cd" />

@@ -8,7 +8,7 @@ namespace LLCompiler.SemanticAnalyzer
 {
     public class SemanticAnalyzer
     {
-        private Dictionary<string, FunctionDefinition> FuncTable;
+        public Dictionary<string, FunctionDefinition> FuncTable;
 
         public SemanticAnalyzer()
         {

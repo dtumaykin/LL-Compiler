@@ -8,6 +8,7 @@ using LLCompiler;
 using LLCompiler.Lexer;
 using LLCompiler.Parser;
 using LLCompiler.SemanticAnalyzer;
+using LLCompiler.CodeGenerator;
 
 namespace LLCompilerTests
 {
@@ -54,6 +55,27 @@ namespace LLCompilerTests
             an.DeriveTypes();
             an.ValidateFuncCalls();
 
+        }
+
+        [TestMethod]
+        public void TestCodeGeneration()
+        {
+            string content = File.ReadAllText(@"D:\sources\intel_ws2012\LL-Compiler\LLCompilerTests\input.txt");
+
+            SemanticAnalyzer an = new SemanticAnalyzer();
+
+            var tokens = Lexer.ProcessString(content);
+
+            var values = Parser.ProcessTokens(tokens);
+
+            an.CreateSymbolTable(values);
+
+            an.DeriveTypes();
+
+            an.ValidateFuncCalls();
+
+            CodeGenerator cg = new CodeGenerator(an.FuncTable.Values.ToList());
+            cg.GenerateCFunctions();
         }
     }
 }
