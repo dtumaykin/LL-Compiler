@@ -91,6 +91,7 @@ namespace LLCompilerTests
 
             CodeGenerator cg = new CodeGenerator(an.FuncTable);
             cg.GenerateCFunctions();
+            cg.WriteCFunctionsToFile("main.c");
         }
     }
 }

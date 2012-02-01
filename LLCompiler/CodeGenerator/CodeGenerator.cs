@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using LLCompiler.SemanticAnalyzer;
 using LLCompiler.Parser;
+using System.IO;
 
 namespace LLCompiler.CodeGenerator
 {
@@ -36,11 +37,17 @@ namespace LLCompiler.CodeGenerator
 
         public void WriteCFunctionsToFile(string path)
         {
-            throw new NotImplementedException();
+            foreach (var f in GeneratedCFuncTable.Keys)
+            {
+                GeneratedCFunction func = GeneratedCFuncTable[f];
+                File.AppendAllText(path, func.CFuncPrototype);
+                File.AppendAllText(path, func.CFuncBody + "\n");
+            }
         }
 
         /// <summary>
         /// Generates C code of a function from a funcion definition.
+        /// TODO: Recursive functions.
         /// </summary>
         /// <param name="f">Function definition.</param>
         private void GenerateCFunction(FunctionDefinition f)
@@ -69,6 +76,7 @@ namespace LLCompiler.CodeGenerator
 
             // generating function body
             string body = "";
+            body += "{\n\treturn ";
 
             if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR) // function call
             {
@@ -78,7 +86,7 @@ namespace LLCompiler.CodeGenerator
             { }
             else // primitive type
             {
-                body += "{" + nln + "return ";
+
 
                 switch (f.Body.ParsedValueType)
                 {
@@ -98,8 +106,9 @@ namespace LLCompiler.CodeGenerator
                         throw new NotImplementedException();
                 }
 
-                body += ";" + nln + "}";
+               
             }
+            body += ";" + nln + "}";
 
             // generating function body
 
@@ -136,7 +145,7 @@ namespace LLCompiler.CodeGenerator
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        result += GenerateCCode(FuncDefs[calledFuncName].Body);
                     }
                     break;
                 case ParsedValuesTypes.PARSEDINTEGERCONST:
