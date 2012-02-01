@@ -9,21 +9,21 @@ namespace LLCompiler.CodeGenerator
 {
     public class CodeGenerator
     {
-        private List<FunctionDefinition> FuncDefs;
-        private List<GeneratedCFunction> GeneratedCFuncTable;
+        private Dictionary<string, FunctionDefinition> FuncDefs;
+        private Dictionary<string, GeneratedCFunction> GeneratedCFuncTable;
 
         private const string wsp = " ";
         private const string nln = "\n";
 
-        public CodeGenerator(List<FunctionDefinition> funcs)
+        public CodeGenerator(Dictionary<string, FunctionDefinition> funcs)
         {
             this.FuncDefs = funcs;
-            this.GeneratedCFuncTable = new List<GeneratedCFunction>();
+            this.GeneratedCFuncTable = new Dictionary<string, GeneratedCFunction>();
         }
 
         public void GenerateCFunctions()
         {
-            foreach (var f in FuncDefs)
+            foreach (var f in FuncDefs.Values)
             {
                 GenerateCFunction(f);
             }
@@ -50,6 +50,7 @@ namespace LLCompiler.CodeGenerator
                 return;
 
             GeneratedCFunction func = new GeneratedCFunction();
+            func.FuncDef = f;
 
             // generating function prototype
             string proto = GetTypeName(f.RetType) + wsp + f.Name + "(";
@@ -62,31 +63,50 @@ namespace LLCompiler.CodeGenerator
                 x = true;
                 proto += GetTypeName(a.Value) + wsp + a.Key;
             }
+            proto += ")";
 
             func.CFuncPrototype = proto;
 
             // generating function body
-            string body = "{" + nln + "return ";
-            switch (f.Body.ParsedValueType)
+            string body = "";
+
+            if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR) // function call
             {
-                case ParsedValuesTypes.PARSEDSEXPR:
-                    body += GenerateCFunctionCall(f.Body as ParsedSExpr);
-                    break;
-                case ParsedValuesTypes.PARSEDCHARCONST:
-                    body += "'" + (f.Body as ParsedCharConst).Value.ToString() + "'";
-                    break;
-                case ParsedValuesTypes.PARSEDINTEGERCONST:
-                    body += (f.Body as ParsedIntegerConst).Value.ToString();
-                    break;
-                default:
-                    throw new NotImplementedException();
+                body += GenerateCFunctionCall(f.Body as ParsedSExpr);
+            }
+            else if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+            { }
+            else // primitive type
+            {
+                body += "{" + nln + "return ";
+
+                switch (f.Body.ParsedValueType)
+                {
+                    case ParsedValuesTypes.PARSEDCHARCONST:
+                        body += "'" + (f.Body as ParsedCharConst).Value.ToString() + "'";
+                        break;
+                    case ParsedValuesTypes.PARSEDIDENTIFIER:
+                        body += (f.Body as ParsedIdentifier).Name;
+                        break;
+                    case ParsedValuesTypes.PARSEDINTEGERCONST:
+                        body += (f.Body as ParsedIntegerConst).Value.ToString();
+                        break;
+                    case ParsedValuesTypes.PARSEDSTRINGCONST:
+                        body += "\"" + (f.Body as ParsedStringConst).Value + "\"";
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+
+                body += ";" + nln + "}";
             }
 
-            body += ";" + nln + "}";
+            // generating function body
+
 
             func.CFuncBody = body;
 
-            this.GeneratedCFuncTable.Add(func);
+            this.GeneratedCFuncTable.Add(func.FuncDef.Name, func);
         }
 
         /// <summary>
@@ -101,6 +121,7 @@ namespace LLCompiler.CodeGenerator
 
             if(temp[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
                 throw new Exception("CG.GenerateCFunctionCall: Not a function call!"); 
+
 
             result += (temp[0] as ParsedIdentifier).Name;
             result += "( ";
@@ -149,11 +170,11 @@ namespace LLCompiler.CodeGenerator
                 case VarType.Char:
                     return "char";
                 case VarType.String:
-                    throw new NotImplementedException();
+                    return "LL_String";
                 case VarType.List:
-                    throw new NotImplementedException();
+                    return "LL_List";
                 case VarType.Any:
-                    throw new NotImplementedException();
+                    return "LL_Any";
                 default:
                     throw new Exception("CD.GetTypeName: Unknown type!");
             }
@@ -170,11 +191,8 @@ namespace LLCompiler.CodeGenerator
             if (sexpr.Members[0].ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER)
             {
                 string funcName = (sexpr.Members[0] as ParsedIdentifier).Name;
-                foreach (var f in FuncDefs)
-                {
-                    if (f.Name == funcName)
-                        return f;
-                }
+                if (FuncDefs.ContainsKey(funcName))
+                    return FuncDefs[funcName];
                 throw new Exception("CG.FindFunction: Unknown symbol " + funcName + "!");
             }
             else
