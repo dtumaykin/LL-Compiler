@@ -65,13 +65,12 @@ namespace LLCompiler.SemanticAnalyzer
                 newFunc.Arguments = arguments;
 
                 // adding a body
-                newFunc.Body = pse.Members[3];
+                newFunc.Body = ProcessConds(pse.Members[3]);
 
                 // add to symbol table
                 FuncTable[newFunc.Name] = newFunc;
             }
         }
-
         /// <summary>
         /// Validates function calls, looks for undefined symbols.
         /// </summary>
@@ -82,11 +81,45 @@ namespace LLCompiler.SemanticAnalyzer
                 // library function
                 if (func.Body == null)
                     continue;
-
-                ValidateFuncCall(func.Body as ParsedSExpr);
+                
+                ValidateFuncCall(func.Body);
             }
         }
+        /// <summary>
+        /// Process func and changes appropriate S Expressions to cond expressions.
+        /// </summary>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        private IParsedValue ProcessConds(IParsedValue func)
+        {
+            if (func.ParsedValueType != ParsedValuesTypes.PARSEDSEXPR) return func;
 
+            if ((func as ParsedSExpr).Members[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
+                throw new Exception("Something strange happened during cond conversion.\n");
+            else if (((func as ParsedSExpr).Members[0] as ParsedIdentifier).Name != "cond")
+            {
+                List<IParsedValue> newMembers = new List<IParsedValue>();
+                foreach (var i in (func as ParsedSExpr).Members)
+                {
+                    newMembers.Add(ProcessConds(i));
+                }
+                (func as ParsedSExpr).Members = newMembers;
+                return func;
+            }
+            else
+            {
+                ParsedCondExpression pce = new ParsedCondExpression();
+                var mem = (func as ParsedSExpr).Members;
+                for (int i = 1; i < mem.Count; i++)
+                {
+                    if (mem[i].ParsedValueType != ParsedValuesTypes.PARSEDSEXPR) throw new Exception("Incorrect cond clause.");
+                    var clause = mem[i] as ParsedSExpr;
+                    if (clause.Members.Count != 2) throw new Exception("Incorrect cond clause.");
+                    pce.Clauses.Add(new CondClause { Condition = ProcessConds(clause.Members[0]), Result = ProcessConds(clause.Members[1]) });
+                }
+                return pce;
+            }
+        }
         /// <summary>
         /// Updates function return types in base of it's arguments
         /// </summary>
@@ -117,35 +150,53 @@ namespace LLCompiler.SemanticAnalyzer
                 itrCount++;
             }
         }
-
         /// <summary>
         /// Derives function return types, basing on called functions return type.
         /// TODO: refactor interface(rval)-
         /// </summary>
         /// <param name="func"></param>
-        private void DeriveFuncRetType(FunctionDefinition func)
+        private void DeriveFuncRetType(FunctionDefinition func) 
         {
             if (func.Body == null)
                 return;
 
-            FunctionDefinition funcCalled = FindFunction(func.Body as ParsedSExpr);
-            if (func.RetType != funcCalled.RetType)
-                func.RetType = funcCalled.RetType;
+            switch (func.Body.ParsedValueType)
+            {
+                case ParsedValuesTypes.PARSEDSEXPR:
+                    FunctionDefinition funcCalled = FindFunction(func.Body as ParsedSExpr);
+                    if (func.RetType != funcCalled.RetType)
+                        func.RetType = funcCalled.RetType;
 
-            // already done, don't need to derive
-            if (funcCalled.RetType != VarType.Any)
-                return;
+                    // already done, don't need to derive
+                    if (funcCalled.RetType != VarType.Any)
+                        return;
 
-            List<VarType> callArgTypesList = GetFuncCallArguments(func.Body as ParsedSExpr);
-            bool sameType = true; VarType type = callArgTypesList[0];
-            foreach (VarType t in callArgTypesList)
-                if (t != type)
-                    sameType = false;
+                    List<VarType> callArgTypesList = GetFuncCallArguments(func.Body as ParsedSExpr);
+                    bool sameType = true; VarType type = callArgTypesList[0];
+                    foreach (VarType t in callArgTypesList)
+                        if (t != type)
+                            sameType = false;
 
-            if (sameType)
-                func.RetType = type;
+                    if (sameType)
+                        func.RetType = type;
+                    break;
+                case ParsedValuesTypes.PARSEDCHARCONST:
+                    func.RetType = VarType.Char;
+                    break;
+                case ParsedValuesTypes.PARSEDIDENTIFIER:
+                    func.RetType = VarType.Any;
+                    break;
+                case ParsedValuesTypes.PARSEDINTEGERCONST:
+                    func.RetType = VarType.Integer;
+                    break;
+                case ParsedValuesTypes.PARSEDSTRINGCONST:
+                    func.RetType = VarType.String;
+                    break;
+                case ParsedValuesTypes.PARSEDCOND:
+                    func.RetType = VarType.Any;
+                    break;
+            }
         }
-
         /// <summary>
         /// Derives function argumets types, basing on called functions return type.
         /// </summary>
@@ -157,7 +208,7 @@ namespace LLCompiler.SemanticAnalyzer
             foreach (var arg in func.Arguments.Keys.ToList())
             {
                 VarType oldType = func.Arguments[arg];
-                func.Arguments[arg] = GetArgumentType(arg, (func.Body as ParsedSExpr));
+                func.Arguments[arg] = GetArgumentType(arg, (func.Body));
                 if (func.Arguments[arg] != oldType)
                     changed = true;
             }
@@ -165,56 +216,86 @@ namespace LLCompiler.SemanticAnalyzer
             return changed;
         }
 
-        private VarType GetArgumentType(string arg, ParsedSExpr pse)
-        {
-            VarType result = VarType.Any;
-            List<IParsedValue> temp = new List<IParsedValue>(pse.Members);
+        private VarType Inf(VarType v1, VarType v2) {
+            if (v1 == VarType.Nothing) return v2;
+            if (v2 == VarType.Nothing) return v1;
 
-            // get function
-            FunctionDefinition calledFunc = FindFunction(pse);
-
-            // remove function name
-            temp.RemoveAt(0);
-
-            // search in direct parameters
-            foreach (var a in temp.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER))
-            {
-                // found our parameter
-                if ((a as ParsedIdentifier).Name == arg)
-                {
-                    int idx = temp.IndexOf(a);
-                    result = calledFunc.Arguments.ElementAt(idx).Value;
-                }
-            }
-
-            // search in function calls
-            foreach (var fa in pse.Members.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR))
-            {
-                result = GetArgumentType(arg, (fa as ParsedSExpr));
-            }
-
-            return result;
+            return v1 == v2 ? v1 : VarType.Any; 
         }
 
+        private VarType GetArgumentType(string arg, IParsedValue val)
+        {
+            VarType result = VarType.Nothing;
+            if (val.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR)
+            {
+                var pse = val as ParsedSExpr;            
+                List<IParsedValue> temp = new List<IParsedValue>(pse.Members);
+
+                // get function
+                FunctionDefinition calledFunc = FindFunction(pse);
+
+                // remove function name
+                temp.RemoveAt(0);
+
+                // search in direct parameters
+                foreach (var a in temp.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER))
+                {
+                    // found our parameter
+                    if ((a as ParsedIdentifier).Name == arg)
+                    {
+                        int idx = temp.IndexOf(a);
+                        result = Inf(result, calledFunc.Arguments.ElementAt(idx).Value);
+                    }
+                }
+
+                // search in function calls
+                foreach (var fa in temp.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR ||x.ParsedValueType == ParsedValuesTypes.PARSEDCOND))
+                {
+                    result = Inf(result, GetArgumentType(arg, fa));
+                }
+            }
+            else if (val.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+            {
+                var pse = val as ParsedCondExpression;
+                foreach (var x in pse.Clauses)
+                {
+                    result = Inf(result, GetArgumentType(arg, x.Condition));
+                    result = Inf(result, GetArgumentType(arg, x.Result));
+                }
+            }
+            return result;
+        }
         /// <summary>
         /// Rercursive function, valdating function call.
         /// Raises Exception in case of failure.
         /// </summary>
         /// <param name="sexpr">Should contain: FuncName, Params.</param>
-        private void ValidateFuncCall(ParsedSExpr sexpr)
+        private void ValidateFuncCall(IParsedValue call)
         {
-            FunctionDefinition func = FindFunction(sexpr);
-            List<VarType> callArgList = GetFuncCallArguments(sexpr);
-            List<VarType> funcArgList = func.Arguments.Values.ToList();
+            if (call.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR)
+            {
+                var sexpr = call as ParsedSExpr;
+                FunctionDefinition func = FindFunction(sexpr);
+                List<VarType> callArgList = GetFuncCallArguments(sexpr);
+                List<VarType> funcArgList = func.Arguments.Values.ToList();
 
-            if (callArgList.Count != funcArgList.Count)
-                throw new Exception("SA: Wrong arguments list length at " + func.Name + " function call!");
+                if (callArgList.Count != funcArgList.Count)
+                    throw new Exception("SA: Wrong arguments list length at " + func.Name + " function call!");
 
-            for(int i = 0; i < callArgList.Count; i++)
-                if(!IsTypesCompatible(funcArgList[i], callArgList[i]))
-                    throw new Exception("SA: Wrong arguments type at " + func.Name + " function call!");
+                for (int i = 0; i < callArgList.Count; i++)
+                    if (!IsTypesCompatible(funcArgList[i], callArgList[i]))
+                        throw new Exception("SA: Wrong arguments type at " + func.Name + " function call!");
+            }
+            else if (call.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+            {
+                var ccl = call as ParsedCondExpression;
+                foreach (var cl in ccl.Clauses)
+                {
+                    ValidateFuncCall(cl.Condition);
+                    ValidateFuncCall(cl.Result);
+                }
+            }
         }
-
         /// <summary>
         /// Looks for a function in a FuncTable.
         /// Raises Exception if func is not found.
@@ -234,7 +315,6 @@ namespace LLCompiler.SemanticAnalyzer
                 throw new Exception("SA: Not a function call!");
 
         }
-
         /// <summary>
         /// Recursively gets function call arguments types list.
         /// </summary>
@@ -273,7 +353,6 @@ namespace LLCompiler.SemanticAnalyzer
 
             return result;
         }
-
         /// <summary>
         /// Verifies types compatibility.
         /// Any -> Int, Char, String, List -> Null
@@ -283,15 +362,8 @@ namespace LLCompiler.SemanticAnalyzer
         /// <returns></returns>
         private bool IsTypesCompatible(VarType t1, VarType t2)
         {
-            if (t1 == VarType.Any)
-                return true;
-
-            if (t1 == t2)
-                return true;
-
-            return false;
+            return t1 == VarType.Any || t2 == VarType.Any || t1 == t2;
         }
-
         /// <summary>
         /// Adds standard library function into symbol table
         /// </summary>
@@ -467,7 +539,8 @@ namespace LLCompiler.SemanticAnalyzer
                 Name = "cons",
                 RetType = VarType.Any,
                 Arguments = new Dictionary<string, VarType>() { 
-                    { "op1", VarType.Any}
+                    { "op1", VarType.Any},
+                    { "op2", VarType.List}
                 },
                 Body = null
             };

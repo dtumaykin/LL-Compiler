@@ -54,7 +54,22 @@ namespace LLCompilerTests
             an.CreateSymbolTable(values);
             an.DeriveTypes();
             an.ValidateFuncCalls();
+        }
 
+        [TestMethod]
+        public void TryParseCond()
+        {
+            var content = "(defun rvrs (l1 l2) (cond ((null l1) l2) (T (cons (car l1) l2))))";
+
+            SemanticAnalyzer an = new SemanticAnalyzer();
+
+            var tokens = Lexer.ProcessString(content);
+
+            var values = Parser.ProcessTokens(tokens);
+
+            an.CreateSymbolTable(values);
+            an.DeriveTypes();
+            an.ValidateFuncCalls();
         }
 
         [TestMethod]
