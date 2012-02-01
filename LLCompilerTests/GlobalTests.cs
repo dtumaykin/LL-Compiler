@@ -89,7 +89,7 @@ namespace LLCompilerTests
 
             an.ValidateFuncCalls();
 
-            CodeGenerator cg = new CodeGenerator(an.FuncTable.Values.ToList());
+            CodeGenerator cg = new CodeGenerator(an.FuncTable);
             cg.GenerateCFunctions();
         }
     }

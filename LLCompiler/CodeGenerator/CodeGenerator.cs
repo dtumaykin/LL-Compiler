@@ -72,7 +72,7 @@ namespace LLCompiler.CodeGenerator
 
             if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR) // function call
             {
-                body += GenerateCFunctionCall(f.Body as ParsedSExpr);
+                body += GenerateCCode(f.Body);
             }
             else if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
             { }
@@ -110,47 +110,143 @@ namespace LLCompiler.CodeGenerator
         }
 
         /// <summary>
-        /// Generates C code of function call from ParsedSExpr.
+        /// Generates C code from a IParsedValue.
         /// </summary>
         /// <param name="pse"></param>
         /// <returns>Function C code.</returns>
-        private string GenerateCFunctionCall(ParsedSExpr pse)
+        private string GenerateCCode(IParsedValue pse)
         {
-            List<IParsedValue> temp = new List<IParsedValue>(pse.Members);
             string result = "";
 
-            if(temp[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
-                throw new Exception("CG.GenerateCFunctionCall: Not a function call!"); 
-
-
-            result += (temp[0] as ParsedIdentifier).Name;
-            result += "( ";
-            bool x = false;
-            foreach (var v in temp)
+            switch(pse.ParsedValueType)
             {
-                if(x)
-                    result += ", ";
-                x = true;
-                switch (v.ParsedValueType)
-                {
-                    case ParsedValuesTypes.PARSEDCHARCONST:
-                        result += "'" + (v as ParsedCharConst).Value.ToString() + "'";
-                        break;
-                    case ParsedValuesTypes.PARSEDIDENTIFIER:
-                        result += (v as ParsedIdentifier).Name;
-                        break;
-                    case ParsedValuesTypes.PARSEDINTEGERCONST:
-                        result += (v as ParsedIntegerConst).Value.ToString();
-                        break;
-                    case ParsedValuesTypes.PARSEDSEXPR:
-                        result += GenerateCFunctionCall(v as ParsedSExpr);
-                        break;
-                    default:
+                case ParsedValuesTypes.PARSEDSEXPR:
+                    List<IParsedValue> temp = new List<IParsedValue>((pse as ParsedSExpr).Members);
+
+                    if (temp[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
+                        throw new Exception("CG.GenerateCCode: Not a function call!");
+
+                    string calledFuncName = (temp[0] as ParsedIdentifier).Name;
+                    temp.RemoveAt(0);
+
+                    // standart function call
+                    if (FuncDefs[calledFuncName].Body == null)
+                    {
+                        result += GenerateStandartCFunctionCall(calledFuncName, temp);
+                    }
+                    else
+                    {
                         throw new NotImplementedException();
-                }
+                    }
+                    break;
+                case ParsedValuesTypes.PARSEDINTEGERCONST:
+                    result += (pse as ParsedIntegerConst).Value.ToString();
+                    break;
+                case ParsedValuesTypes.PARSEDIDENTIFIER:
+                    result += (pse as ParsedIdentifier).Name;
+                    break;
+                case ParsedValuesTypes.PARSEDCHARCONST:
+                    result += "'" + (pse as ParsedCharConst).Value + "'";
+                    break;
+                case ParsedValuesTypes.PARSEDSTRINGCONST:
+                    result += "\"" + (pse as ParsedStringConst).Value + "\"";
+                    break;
+                case  ParsedValuesTypes.PARSEDCOND:
+                    throw new NotImplementedException();
+                default:
+                    break;
             }
 
-            result += ")";
+
+            return result;
+        }
+
+        /// <summary>
+        /// Generates C code for standart functions.
+        /// </summary>
+        /// <param name="calledFuncName"></param>
+        /// <param name="temp"></param>
+        /// <returns></returns>
+        private string GenerateStandartCFunctionCall(string calledFuncName, List<IParsedValue> temp)
+        {
+            string result = "";
+
+            switch (calledFuncName)
+            {
+                case "if":
+                    if(temp.Count != 3)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad if condition!");
+                    switch (temp[0].ParsedValueType)
+                    {
+                        case ParsedValuesTypes.PARSEDINTEGERCONST:
+                            int val = (temp[0] as ParsedIntegerConst).Value;
+                            if (val != 0)
+                                return GenerateCCode(temp[1]);
+                            else
+                                return GenerateCCode(temp[2]);
+
+                        case ParsedValuesTypes.PARSEDSEXPR:
+                            result += GenerateCCode(temp[0]) + " ? " + GenerateCCode(temp[1]) + " : " + GenerateCCode(temp[2]);
+                            break;
+                        default:
+                            throw new Exception("CG.GenerateStandartCFunctionCall: Bad if condition!");
+                    }
+                    break;
+
+                case ">":
+                    if(temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad > !");
+                    result += "( " + GenerateCCode(temp[0]) + " > " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "<":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad < !");
+                    result += "( " + GenerateCCode(temp[0]) + " < " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case ">=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad >= !");
+                    result += "( " + GenerateCCode(temp[0]) + " >= " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "<=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad <= !");
+                    result += "( " + GenerateCCode(temp[0]) + " <= " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad = !");
+                    result += "( " + GenerateCCode(temp[0]) + " == " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "*":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad * !");
+                    result += "( " + GenerateCCode(temp[0]) + " * " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "/":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad / !");
+                    result += "( " + GenerateCCode(temp[0]) + " / " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "+":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad + !");
+                    result += "( " + GenerateCCode(temp[0]) + " + " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "-":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad - !");
+                    result += "( " + GenerateCCode(temp[0]) + " - " + GenerateCCode(temp[1]) + " )";
+                    break;
+            }
 
             return result;
         }
