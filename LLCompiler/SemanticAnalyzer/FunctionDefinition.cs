@@ -12,7 +12,8 @@ namespace LLCompiler.SemanticAnalyzer
         Any,
         Integer,
         Char,
-        String
+        String,
+        List
     }
 
     public class FunctionDefinition

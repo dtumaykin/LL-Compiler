@@ -51,6 +51,7 @@ namespace LLCompilerTests
             var values = Parser.ProcessTokens(tokens);
 
             an.CreateSymbolTable(values);
+            an.DeriveTypes();
             an.ValidateFuncCalls();
 
         }

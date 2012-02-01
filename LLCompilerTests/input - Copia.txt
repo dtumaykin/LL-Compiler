@@ -1,0 +1,54 @@
+(defun rvrs (l1 l2)
+  (if (null l1) l2 (cons (car l1) l2)))
+
+(defun apnd (L1 L2) (rvrs (rvrs L1 nil) L2))
+
+(defun appnd(L1 L2)
+  (if (null L1) L2 (cons (car L1) (appnd (cdr L1) L2))
+  ))
+
+(defun sq (A L)
+  (if (null L) nil (append (list (cons A (car L)) (append (car L) (list A))) (sq A (cdr L)))
+  )
+)
+
+(defun permut (h)
+  (if (null L) nil (if (null (cdr L)) (list L) (sq (car L) (permut (cdr L))))
+  )
+)
+
+(defun qLG (A L F) (remove-if-not (lambda (x) (funcall F x A)) L))
+(defun qLE (A L F) (remove-if     (lambda (x) (funcall F x A)) L))
+
+(defun qqsort (L F)
+  (if
+    (null L) nil
+    (append
+         (qqsort (qLG (car L) (cdr L) F) F)
+         (list (car L))
+         (qqsort (qLE (car L) (cdr L) F) F)
+    )
+))
+
+(defun qsrt (L F)
+  (if
+    (null L) nil (append
+         (qsrt (remove-if-not (lambda (x) (funcall F x (car L))) (cdr L)) F)
+         (cons (car L) nil)
+         (qsrt (remove-if (lambda (x) (funcall F x (car L))) (cdr L)) F)
+        )
+  )
+)
+
+(defun revl (h)
+  (if
+    (null L) nil
+    (if (null (cdr L)) L
+    (atomsnoappend (cons (revl (cdr L)) (cons (car L) nil))))
+  ))
+
+(defun rna (h)
+  (if
+    (null L) nil (if (null (cdr L)) L (cons (car (rna (cdr L))) (rna (cons (car L) (cdr (rna (cdr L)))))))
+  )
+)

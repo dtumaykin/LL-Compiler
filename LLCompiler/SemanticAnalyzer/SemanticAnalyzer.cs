@@ -87,6 +87,114 @@ namespace LLCompiler.SemanticAnalyzer
             }
         }
 
+        /// <summary>
+        /// Updates function return types in base of it's arguments
+        /// </summary>
+        public void DeriveTypes()
+        {
+            bool changed = true;
+            int itrCount = 0; // fix possible infinite loop
+            while (changed && itrCount < 20)
+            {
+                changed = false;
+
+                foreach (var func in FuncTable.Values)
+                {
+                    // don't derive for library functions
+                    if (func.Body == null)
+                        continue;
+
+                    // deriving return type
+                    VarType oldType = func.RetType;
+                    DeriveFuncRetType(func);
+                    if (oldType != func.RetType)
+                        changed = true;
+
+                    // deriving arguments types
+                    if (DeriveFuncArgsType(func))
+                        changed = true;
+                }
+                itrCount++;
+            }
+        }
+
+        /// <summary>
+        /// Derives function return types, basing on called functions return type.
+        /// TODO: refactor interface(rval)-
+        /// </summary>
+        /// <param name="func"></param>
+        private void DeriveFuncRetType(FunctionDefinition func)
+        {
+            if (func.Body == null)
+                return;
+
+            FunctionDefinition funcCalled = FindFunction(func.Body as ParsedSExpr);
+            if (func.RetType != funcCalled.RetType)
+                func.RetType = funcCalled.RetType;
+
+            // already done, don't need to derive
+            if (funcCalled.RetType != VarType.Any)
+                return;
+
+            List<VarType> callArgTypesList = GetFuncCallArguments(func.Body as ParsedSExpr);
+            bool sameType = true; VarType type = callArgTypesList[0];
+            foreach (VarType t in callArgTypesList)
+                if (t != type)
+                    sameType = false;
+
+            if (sameType)
+                func.RetType = type;
+        }
+
+        /// <summary>
+        /// Derives function argumets types, basing on called functions return type.
+        /// </summary>
+        /// <param name="func"></param>
+        /// <returns>True, if func args type is changed</returns>
+        private bool DeriveFuncArgsType(FunctionDefinition func)
+        {
+            bool changed = false;
+            foreach (var arg in func.Arguments.Keys.ToList())
+            {
+                VarType oldType = func.Arguments[arg];
+                func.Arguments[arg] = GetArgumentType(arg, (func.Body as ParsedSExpr));
+                if (func.Arguments[arg] != oldType)
+                    changed = true;
+            }
+
+            return changed;
+        }
+
+        private VarType GetArgumentType(string arg, ParsedSExpr pse)
+        {
+            VarType result = VarType.Any;
+            List<IParsedValue> temp = new List<IParsedValue>(pse.Members);
+
+            // get function
+            FunctionDefinition calledFunc = FindFunction(pse);
+
+            // remove function name
+            temp.RemoveAt(0);
+
+            // search in direct parameters
+            foreach (var a in temp.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER))
+            {
+                // found our parameter
+                if ((a as ParsedIdentifier).Name == arg)
+                {
+                    int idx = temp.IndexOf(a);
+                    result = calledFunc.Arguments.ElementAt(idx).Value;
+                }
+            }
+
+            // search in function calls
+            foreach (var fa in pse.Members.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR))
+            {
+                result = GetArgumentType(arg, (fa as ParsedSExpr));
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Rercursive function, valdating function call.
@@ -136,9 +244,6 @@ namespace LLCompiler.SemanticAnalyzer
         {
             List<VarType> result = new List<VarType>();
 
-            // remove function name
-            sexpr.Members.RemoveAt(0);
-
             foreach (IParsedValue val in sexpr.Members)
             {
                 switch (val.ParsedValueType)
@@ -162,18 +267,23 @@ namespace LLCompiler.SemanticAnalyzer
                         break;
                 }
             }
+
+            // remove function name
+            result.RemoveAt(0);
+
             return result;
         }
 
         /// <summary>
         /// Verifies types compatibility.
+        /// Any -> Int, Char, String, List -> Null
         /// </summary>
         /// <param name="t1"></param>
         /// <param name="t2"></param>
         /// <returns></returns>
         private bool IsTypesCompatible(VarType t1, VarType t2)
         {
-            if (t1 == VarType.Any || t2 == VarType.Any)
+            if (t1 == VarType.Any)
                 return true;
 
             if (t1 == t2)
@@ -299,13 +409,12 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            // from here down -> verify
             FuncTable["car"] = new FunctionDefinition
             {
                 Name = "car",
                 RetType = VarType.Any,
                 Arguments = new Dictionary<string, VarType>() { 
-                    { "op1", VarType.Any}
+                    { "op1", VarType.List}
                 },
                 Body = null
             };
@@ -313,9 +422,9 @@ namespace LLCompiler.SemanticAnalyzer
             FuncTable["cdr"] = new FunctionDefinition
             {
                 Name = "cdr",
-                RetType = VarType.Any,
+                RetType = VarType.List,
                 Arguments = new Dictionary<string, VarType>() { 
-                    { "op1", VarType.Any}
+                    { "op1", VarType.List}
                 },
                 Body = null
             };
@@ -325,7 +434,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Name = "car",
                 RetType = VarType.Integer,
                 Arguments = new Dictionary<string, VarType>() { 
-                    { "op1", VarType.Any}
+                    { "op1", VarType.List}
                 },
                 Body = null
             };
@@ -340,6 +449,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
+            // from here down -> verify
             FuncTable["if"] = new FunctionDefinition
             {
                 Name = "if",
