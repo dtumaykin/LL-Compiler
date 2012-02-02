@@ -301,25 +301,25 @@ namespace LLCompiler.CodeGenerator
                 case "car":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `car` call!");
-                    result += "( LL_Car(" + GenerateCCode(temp[0])  "))";
+                    result += "( LL_Car(" + GenerateCCode(temp[0])  + "))";
                     break;
 
                 case "cdr":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `cdr` call!");
-                    result += "( LL_Cdr(" + GenerateCCode(temp[0])  "))";
+                    result += "( LL_Cdr(" + GenerateCCode(temp[0])  + "))";
                     break;
 
                 case "null":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `null` call!");
-                    result += "( LL_Null(" + GenerateCCode(temp[0])  "))";
+                    result += "( LL_Null(" + GenerateCCode(temp[0])  + "))";
                     break;
 
                 case "atom":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `atom` call!");
-                    result += "( LL_Atom(" + GenerateCCode(temp[0])  "))";
+                    result += "( LL_Atom(" + GenerateCCode(temp[0])  + "))";
                     break;
             }
 
