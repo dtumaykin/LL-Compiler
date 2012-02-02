@@ -185,9 +185,12 @@ namespace LLCompiler.CodeGenerator
                     {
                         result += "\n\t if (";
                         
-                        // TODO: implement, cond conditions and cond results
+                        // TODO: implement, cond conditions
                         result += GenerateCCode(cl.Condition) + " )";
-                        result += "\n return " + GenerateCCode(cl.Result) + ";\n";
+                        if (cl.Result.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+                            result += GenerateCCode(cl.Result);
+                        else
+                            result += "\n return " + GenerateCCode(cl.Result) + ";\n";
                       
                     }
 
