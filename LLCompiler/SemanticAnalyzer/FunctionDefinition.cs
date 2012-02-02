@@ -29,7 +29,7 @@ namespace LLCompiler.SemanticAnalyzer
 
         public FunctionDefinition()
         {
-            RetType = VarType.Any;
+            RetType = VarType.Nothing;
         }
     }
 

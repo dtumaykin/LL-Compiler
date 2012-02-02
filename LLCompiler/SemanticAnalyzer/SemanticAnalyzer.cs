@@ -97,25 +97,45 @@ namespace LLCompiler.SemanticAnalyzer
             {
                 changed = false;
 
-                foreach (var func in FuncTable.Values)
+                var t = FuncTable.Values.Where(x => x.Body != null);
+                foreach (var func in t)
                 {
-                    // don't derive for library functions
-                    if (func.Body == null)
-                        continue;
-
+                    // deriving arguments types
+                    if (DeriveFuncArgsType(func))
+                        changed = true;
                     // deriving return type
                     VarType oldType = func.RetType;
                     DeriveFuncRetType(func);
                     if (oldType != func.RetType)
                         changed = true;
-
-                    // deriving arguments types
-                    if (DeriveFuncArgsType(func))
-                        changed = true;
                 }
                 itrCount++;
             }
         }
+
+        private VarType DeriveIPVRetType(FunctionDefinition context, IParsedValue ipv)
+        {
+            var Result = VarType.Nothing;
+            switch (ipv.ParsedValueType)
+            {
+                case ParsedValuesTypes.PARSEDCHARCONST: return VarType.Char;
+                case ParsedValuesTypes.PARSEDIDENTIFIER: return context.Arguments[(ipv as ParsedIdentifier).Name];
+                case ParsedValuesTypes.PARSEDINTEGERCONST: return VarType.Integer;
+                case ParsedValuesTypes.PARSEDSTRINGCONST: return VarType.String;
+                case ParsedValuesTypes.PARSEDCOND:                    
+                    foreach (var s in (ipv as ParsedCondExpression).Clauses)
+                        Result = Inf(Result, DeriveIPVRetType(context, s.Result));
+                    return Result;
+                case ParsedValuesTypes.PARSEDSEXPR:
+                    var se = ipv as ParsedSExpr;
+                    if ((se.Members[0] as ParsedIdentifier).Name == "if") // Crutch
+                      return Inf(Result, Inf(DeriveIPVRetType(context, se.Members[1]), DeriveIPVRetType(context, se.Members[1])));
+                    return FindFunction(ipv as ParsedSExpr).RetType;
+                default: // Serious shit. You wont ever see that
+                    return VarType.Nothing;
+            }
+        }
+
         /// <summary>
         /// Derives function return types, basing on called functions return type.
         /// TODO: refactor interface(rval)-
@@ -126,43 +146,9 @@ namespace LLCompiler.SemanticAnalyzer
             if (func.Body == null)
                 return;
 
-            switch (func.Body.ParsedValueType)
-            {
-                case ParsedValuesTypes.PARSEDSEXPR:
-                    FunctionDefinition funcCalled = FindFunction(func.Body as ParsedSExpr);
-                    if (func.RetType != funcCalled.RetType)
-                        func.RetType = funcCalled.RetType;
-
-                    // already done, don't need to derive
-                    if (funcCalled.RetType != VarType.Any)
-                        return;
-
-                    List<VarType> callArgTypesList = GetFuncCallArguments(func.Body as ParsedSExpr);
-                    bool sameType = true; VarType type = callArgTypesList[0];
-                    foreach (VarType t in callArgTypesList)
-                        if (t != type)
-                            sameType = false;
-
-                    if (sameType)
-                        func.RetType = type;
-                    break;
-                case ParsedValuesTypes.PARSEDCHARCONST:
-                    func.RetType = VarType.Char;
-                    break;
-                case ParsedValuesTypes.PARSEDIDENTIFIER:
-                    func.RetType = VarType.Any;
-                    break;
-                case ParsedValuesTypes.PARSEDINTEGERCONST:
-                    func.RetType = VarType.Integer;
-                    break;
-                case ParsedValuesTypes.PARSEDSTRINGCONST:
-                    func.RetType = VarType.String;
-                    break;
-                case ParsedValuesTypes.PARSEDCOND:
-                    func.RetType = VarType.Any;
-                    break;
-            }
+            func.RetType = DeriveIPVRetType(func, func.Body);
         }
+
         /// <summary>
         /// Derives function argumets types, basing on called functions return type.
         /// </summary>
@@ -189,6 +175,14 @@ namespace LLCompiler.SemanticAnalyzer
             return v1 == v2 ? v1 : VarType.Any; 
         }
 
+        private VarType Sup(VarType v1, VarType v2)
+        {
+            if (v1 == VarType.Any) return v2;
+            if (v2 == VarType.Any) return v1;
+
+            return v1 == v2 ? v1 : VarType.Nothing; 
+        }
+
         private VarType GetArgumentType(string arg, IParsedValue val)
         {
             VarType result = VarType.Any;
@@ -210,14 +204,14 @@ namespace LLCompiler.SemanticAnalyzer
                     if ((a as ParsedIdentifier).Name == arg)
                     {
                         int idx = temp.IndexOf(a);
-                        result = Inf(result, calledFunc.Arguments.ElementAt(idx).Value);
+                        result = Sup(result, calledFunc.Arguments.ElementAt(idx).Value);
                     }
                 }
 
                 // search in function calls
                 foreach (var fa in temp.Where(x => x.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR ||x.ParsedValueType == ParsedValuesTypes.PARSEDCOND))
                 {
-                    result = Inf(result, GetArgumentType(arg, fa));
+                    result = Sup(result, GetArgumentType(arg, fa));
                 }
             }
             else if (val.ParsedValueType == ParsedValuesTypes.PARSEDCOND)

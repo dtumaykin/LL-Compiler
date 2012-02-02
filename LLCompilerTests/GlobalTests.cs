@@ -43,7 +43,7 @@ namespace LLCompilerTests
         [TestMethod]
         public void ReadFromFileAndTryToParse()
         {
-            string content = File.ReadAllText(@"D:\sources\intel_ws2012\LL-Compiler\LLCompilerTests\input.txt");
+            string content = File.ReadAllText(@"d:\tests\input.lsp");
 
             SemanticAnalyzer an = new SemanticAnalyzer();
 
@@ -75,7 +75,7 @@ namespace LLCompilerTests
         [TestMethod]
         public void TestCodeGeneration()
         {
-            string content = File.ReadAllText(@"D:\sources\intel_ws2012\LL-Compiler\LLCompilerTests\input.txt");
+            string content = File.ReadAllText(@"D:\Temp\input.lsp");
 
             SemanticAnalyzer an = new SemanticAnalyzer();
 
