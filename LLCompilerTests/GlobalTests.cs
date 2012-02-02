@@ -93,5 +93,27 @@ namespace LLCompilerTests
             cg.GenerateCFunctions();
             cg.WriteCFunctionsToFile("main.c");
         }
+
+        [TestMethod]
+        public void TestCondCodeGeneration()
+        {
+            string content = "(defun f (x) (cond   ((< x 5) 7)   ((> x 7) 13)   (T (cond (( < x 1) 9) (T 123)))))";
+
+            SemanticAnalyzer an = new SemanticAnalyzer();
+
+            var tokens = Lexer.ProcessString(content);
+
+            var values = Parser.ProcessTokens(tokens);
+
+            an.CreateSymbolTable(values);
+
+            an.DeriveTypes();
+
+            an.ValidateFuncCalls();
+
+            CodeGenerator cg = new CodeGenerator(an.FuncTable);
+            cg.GenerateCFunctions();
+            cg.WriteCFunctionsToFile("main.c");
+        }
     }
 }
