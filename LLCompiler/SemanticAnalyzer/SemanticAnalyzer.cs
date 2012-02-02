@@ -138,7 +138,6 @@ namespace LLCompiler.SemanticAnalyzer
 
         /// <summary>
         /// Derives function return types, basing on called functions return type.
-        /// TODO: refactor interface(rval)-
         /// </summary>
         /// <param name="func"></param>
         private void DeriveFuncRetType(FunctionDefinition func) 

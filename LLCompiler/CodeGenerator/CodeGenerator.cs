@@ -47,7 +47,6 @@ namespace LLCompiler.CodeGenerator
 
         /// <summary>
         /// Generates C code of a function from a funcion definition.
-        /// TODO: Recursive functions.
         /// </summary>
         /// <param name="f">Function definition.</param>
         private void GenerateCFunction(FunctionDefinition f)
@@ -269,6 +268,12 @@ namespace LLCompiler.CodeGenerator
                     result += "( " + GenerateCCode(temp[0]) + " == " + GenerateCCode(temp[1]) + " )";
                     break;
 
+                case "!=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad != !");
+                    result += "( " + GenerateCCode(temp[0]) + " != " + GenerateCCode(temp[1]) + " )";
+                    break;
+
                 case "*":
                     if (temp.Count != 2)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad * !");
@@ -292,6 +297,30 @@ namespace LLCompiler.CodeGenerator
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad - !");
                     result += "( " + GenerateCCode(temp[0]) + " - " + GenerateCCode(temp[1]) + " )";
                     break;
+
+                case "car":
+                    if (temp.Count != 1)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad `car` call!");
+                    result += "( LL_Car(" + GenerateCCode(temp[0])  "))";
+                    break;
+
+                case "cdr":
+                    if (temp.Count != 1)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad `cdr` call!");
+                    result += "( LL_Cdr(" + GenerateCCode(temp[0])  "))";
+                    break;
+
+                case "null":
+                    if (temp.Count != 1)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad `null` call!");
+                    result += "( LL_Null(" + GenerateCCode(temp[0])  "))";
+                    break;
+
+                case "atom":
+                    if (temp.Count != 1)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad `atom` call!");
+                    result += "( LL_Atom(" + GenerateCCode(temp[0])  "))";
+                    break;
             }
 
             return result;
@@ -299,7 +328,6 @@ namespace LLCompiler.CodeGenerator
 
         /// <summary>
         /// Returns C name for generated type.
-        /// TODO: Implement String, List, Any.
         /// </summary>
         /// <param name="t"></param>
         /// <returns></returns>
