@@ -83,7 +83,10 @@ namespace LLCompiler.CodeGenerator
                 body += GenerateCCode(f.Body);
             }
             else if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
-            { }
+            {
+                // remove return etc
+                body = GenerateCCode(f.Body);
+            }
             else // primitive type
             {
 
@@ -108,7 +111,10 @@ namespace LLCompiler.CodeGenerator
 
                
             }
-            body += ";" + nln + "}";
+
+            // don't need it for cond
+            if(f.Body.ParsedValueType != ParsedValuesTypes.PARSEDCOND)
+                body += ";" + nln + "}";
 
             // generating function body
 
@@ -170,8 +176,28 @@ namespace LLCompiler.CodeGenerator
                 case ParsedValuesTypes.PARSEDSTRINGCONST:
                     result += "\"" + (pse as ParsedStringConst).Value + "\"";
                     break;
-                case  ParsedValuesTypes.PARSEDCOND:
-                    throw new NotImplementedException();
+                case ParsedValuesTypes.PARSEDCOND:
+                    ParsedCondExpression cond = pse as ParsedCondExpression;
+
+                    result += "{\n";
+
+                    foreach (var cl in cond.Clauses)
+                    {
+                        result += "\n\t if (";
+                        
+                        if (cl.Condition.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+                            throw new Exception("CG.GenerateCCode: Cond is not accepted as cond condition!");
+
+                        result += GenerateCCode(cl.Condition) + " )";
+
+                        if (cl.Result.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+                            result += GenerateCCode(cl.Result);
+                        else
+                            result += "\n return " + GenerateCCode(cl.Result) + ";\n";
+                    }
+
+                    result += "\n}";
+                    break;
                 default:
                     break;
             }
@@ -179,6 +205,7 @@ namespace LLCompiler.CodeGenerator
 
             return result;
         }
+
 
         /// <summary>
         /// Generates C code for standart functions.
