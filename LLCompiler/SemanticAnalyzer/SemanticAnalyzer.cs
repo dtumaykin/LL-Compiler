@@ -218,8 +218,8 @@ namespace LLCompiler.SemanticAnalyzer
                 var pse = val as ParsedCondExpression;
                 foreach (var x in pse.Clauses)
                 {
-                    result = Inf(result, GetArgumentType(arg, x.Condition));
-                    result = Inf(result, GetArgumentType(arg, x.Result));
+                    result = Sup(result, GetArgumentType(arg, x.Condition));
+                    result = Sup(result, GetArgumentType(arg, x.Result));
                 }
             }
             return result;
