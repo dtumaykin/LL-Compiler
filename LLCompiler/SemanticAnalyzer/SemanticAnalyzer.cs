@@ -65,7 +65,7 @@ namespace LLCompiler.SemanticAnalyzer
                 newFunc.Arguments = arguments;
 
                 // adding a body
-                newFunc.Body = ProcessConds(pse.Members[3]);
+                newFunc.Body = pse.Members[3];
 
                 // add to symbol table
                 FuncTable[newFunc.Name] = newFunc;
@@ -85,41 +85,7 @@ namespace LLCompiler.SemanticAnalyzer
                 ValidateFuncCall(func.Body);
             }
         }
-        /// <summary>
-        /// Process func and changes appropriate S Expressions to cond expressions.
-        /// </summary>
-        /// <param name="func"></param>
-        /// <returns></returns>
-        private IParsedValue ProcessConds(IParsedValue func)
-        {
-            if (func.ParsedValueType != ParsedValuesTypes.PARSEDSEXPR) return func;
-
-            if ((func as ParsedSExpr).Members[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
-                throw new Exception("Something strange happened during cond conversion.\n");
-            else if (((func as ParsedSExpr).Members[0] as ParsedIdentifier).Name != "cond")
-            {
-                List<IParsedValue> newMembers = new List<IParsedValue>();
-                foreach (var i in (func as ParsedSExpr).Members)
-                {
-                    newMembers.Add(ProcessConds(i));
-                }
-                (func as ParsedSExpr).Members = newMembers;
-                return func;
-            }
-            else
-            {
-                ParsedCondExpression pce = new ParsedCondExpression();
-                var mem = (func as ParsedSExpr).Members;
-                for (int i = 1; i < mem.Count; i++)
-                {
-                    if (mem[i].ParsedValueType != ParsedValuesTypes.PARSEDSEXPR) throw new Exception("Incorrect cond clause.");
-                    var clause = mem[i] as ParsedSExpr;
-                    if (clause.Members.Count != 2) throw new Exception("Incorrect cond clause.");
-                    pce.Clauses.Add(new CondClause { Condition = ProcessConds(clause.Members[0]), Result = ProcessConds(clause.Members[1]) });
-                }
-                return pce;
-            }
-        }
+        
         /// <summary>
         /// Updates function return types in base of it's arguments
         /// </summary>
