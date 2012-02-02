@@ -181,7 +181,7 @@ namespace LLCompiler.SemanticAnalyzer
 
             return changed;
         }
-
+                              
         private VarType Inf(VarType v1, VarType v2) {
             if (v1 == VarType.Nothing) return v2;
             if (v2 == VarType.Nothing) return v1;
@@ -191,7 +191,7 @@ namespace LLCompiler.SemanticAnalyzer
 
         private VarType GetArgumentType(string arg, IParsedValue val)
         {
-            VarType result = VarType.Nothing;
+            VarType result = VarType.Any;
             if (val.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR)
             {
                 var pse = val as ParsedSExpr;            

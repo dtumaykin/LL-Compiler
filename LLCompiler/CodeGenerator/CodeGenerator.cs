@@ -4,26 +4,27 @@ using System.Linq;
 using System.Text;
 using LLCompiler.SemanticAnalyzer;
 using LLCompiler.Parser;
+using System.IO;
 
 namespace LLCompiler.CodeGenerator
 {
     public class CodeGenerator
     {
-        private List<FunctionDefinition> FuncDefs;
-        private List<GeneratedCFunction> GeneratedCFuncTable;
+        private Dictionary<string, FunctionDefinition> FuncDefs;
+        private Dictionary<string, GeneratedCFunction> GeneratedCFuncTable;
 
         private const string wsp = " ";
         private const string nln = "\n";
 
-        public CodeGenerator(List<FunctionDefinition> funcs)
+        public CodeGenerator(Dictionary<string, FunctionDefinition> funcs)
         {
             this.FuncDefs = funcs;
-            this.GeneratedCFuncTable = new List<GeneratedCFunction>();
+            this.GeneratedCFuncTable = new Dictionary<string, GeneratedCFunction>();
         }
 
         public void GenerateCFunctions()
         {
-            foreach (var f in FuncDefs)
+            foreach (var f in FuncDefs.Values)
             {
                 GenerateCFunction(f);
             }
@@ -36,11 +37,17 @@ namespace LLCompiler.CodeGenerator
 
         public void WriteCFunctionsToFile(string path)
         {
-            throw new NotImplementedException();
+            foreach (var f in GeneratedCFuncTable.Keys)
+            {
+                GeneratedCFunction func = GeneratedCFuncTable[f];
+                File.AppendAllText(path, func.CFuncPrototype);
+                File.AppendAllText(path, func.CFuncBody + "\n");
+            }
         }
 
         /// <summary>
         /// Generates C code of a function from a funcion definition.
+        /// TODO: Recursive functions.
         /// </summary>
         /// <param name="f">Function definition.</param>
         private void GenerateCFunction(FunctionDefinition f)
@@ -50,6 +57,7 @@ namespace LLCompiler.CodeGenerator
                 return;
 
             GeneratedCFunction func = new GeneratedCFunction();
+            func.FuncDef = f;
 
             // generating function prototype
             string proto = GetTypeName(f.RetType) + wsp + f.Name + "(";
@@ -62,74 +70,202 @@ namespace LLCompiler.CodeGenerator
                 x = true;
                 proto += GetTypeName(a.Value) + wsp + a.Key;
             }
+            proto += ")";
 
             func.CFuncPrototype = proto;
 
             // generating function body
-            string body = "{" + nln + "return ";
-            switch (f.Body.ParsedValueType)
+            string body = "";
+            body += "{\n\treturn ";
+
+            if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR) // function call
             {
-                case ParsedValuesTypes.PARSEDSEXPR:
-                    body += GenerateCFunctionCall(f.Body as ParsedSExpr);
-                    break;
-                case ParsedValuesTypes.PARSEDCHARCONST:
-                    body += "'" + (f.Body as ParsedCharConst).Value.ToString() + "'";
-                    break;
-                case ParsedValuesTypes.PARSEDINTEGERCONST:
-                    body += (f.Body as ParsedIntegerConst).Value.ToString();
-                    break;
-                default:
-                    throw new NotImplementedException();
+                body += GenerateCCode(f.Body);
             }
-
-            body += ";" + nln + "}";
-
-            func.CFuncBody = body;
-
-            this.GeneratedCFuncTable.Add(func);
-        }
-
-        /// <summary>
-        /// Generates C code of function call from ParsedSExpr.
-        /// </summary>
-        /// <param name="pse"></param>
-        /// <returns>Function C code.</returns>
-        private string GenerateCFunctionCall(ParsedSExpr pse)
-        {
-            List<IParsedValue> temp = new List<IParsedValue>(pse.Members);
-            string result = "";
-
-            if(temp[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
-                throw new Exception("CG.GenerateCFunctionCall: Not a function call!"); 
-
-            result += (temp[0] as ParsedIdentifier).Name;
-            result += "( ";
-            bool x = false;
-            foreach (var v in temp)
+            else if (f.Body.ParsedValueType == ParsedValuesTypes.PARSEDCOND)
+            { }
+            else // primitive type
             {
-                if(x)
-                    result += ", ";
-                x = true;
-                switch (v.ParsedValueType)
+
+
+                switch (f.Body.ParsedValueType)
                 {
                     case ParsedValuesTypes.PARSEDCHARCONST:
-                        result += "'" + (v as ParsedCharConst).Value.ToString() + "'";
+                        body += "'" + (f.Body as ParsedCharConst).Value.ToString() + "'";
                         break;
                     case ParsedValuesTypes.PARSEDIDENTIFIER:
-                        result += (v as ParsedIdentifier).Name;
+                        body += (f.Body as ParsedIdentifier).Name;
                         break;
                     case ParsedValuesTypes.PARSEDINTEGERCONST:
-                        result += (v as ParsedIntegerConst).Value.ToString();
+                        body += (f.Body as ParsedIntegerConst).Value.ToString();
                         break;
-                    case ParsedValuesTypes.PARSEDSEXPR:
-                        result += GenerateCFunctionCall(v as ParsedSExpr);
+                    case ParsedValuesTypes.PARSEDSTRINGCONST:
+                        body += "\"" + (f.Body as ParsedStringConst).Value + "\"";
                         break;
                     default:
                         throw new NotImplementedException();
                 }
+
+               
+            }
+            body += ";" + nln + "}";
+
+            // generating function body
+
+
+            func.CFuncBody = body;
+
+            this.GeneratedCFuncTable.Add(func.FuncDef.Name, func);
+        }
+
+        /// <summary>
+        /// Generates C code from a IParsedValue.
+        /// </summary>
+        /// <param name="pse"></param>
+        /// <returns>Function C code.</returns>
+        private string GenerateCCode(IParsedValue pse)
+        {
+            string result = "";
+
+            switch(pse.ParsedValueType)
+            {
+                case ParsedValuesTypes.PARSEDSEXPR:
+                    List<IParsedValue> temp = new List<IParsedValue>((pse as ParsedSExpr).Members);
+
+                    if (temp[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
+                        throw new Exception("CG.GenerateCCode: Not a function call!");
+
+                    string calledFuncName = (temp[0] as ParsedIdentifier).Name;
+                    temp.RemoveAt(0);
+
+                    // standart function call
+                    if (FuncDefs[calledFuncName].Body == null)
+                    {
+                        result += GenerateStandartCFunctionCall(calledFuncName, temp);
+                    }
+                    else
+                    {
+                        result += "( " + calledFuncName + "( ";
+
+                        bool x = false;
+                        foreach (var a in temp)
+                        {
+                            if (x) result += ",";
+                            x = true;
+                            result += GenerateCCode(a);
+                        }
+
+                        result += "))";
+                    }
+                    break;
+                case ParsedValuesTypes.PARSEDINTEGERCONST:
+                    result += (pse as ParsedIntegerConst).Value.ToString();
+                    break;
+                case ParsedValuesTypes.PARSEDIDENTIFIER:
+                    result += (pse as ParsedIdentifier).Name;
+                    break;
+                case ParsedValuesTypes.PARSEDCHARCONST:
+                    result += "'" + (pse as ParsedCharConst).Value + "'";
+                    break;
+                case ParsedValuesTypes.PARSEDSTRINGCONST:
+                    result += "\"" + (pse as ParsedStringConst).Value + "\"";
+                    break;
+                case  ParsedValuesTypes.PARSEDCOND:
+                    throw new NotImplementedException();
+                default:
+                    break;
             }
 
-            result += ")";
+
+            return result;
+        }
+
+        /// <summary>
+        /// Generates C code for standart functions.
+        /// </summary>
+        /// <param name="calledFuncName"></param>
+        /// <param name="temp"></param>
+        /// <returns></returns>
+        private string GenerateStandartCFunctionCall(string calledFuncName, List<IParsedValue> temp)
+        {
+            string result = "";
+
+            switch (calledFuncName)
+            {
+                case "if":
+                    if(temp.Count != 3)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad if condition!");
+                    switch (temp[0].ParsedValueType)
+                    {
+                        case ParsedValuesTypes.PARSEDINTEGERCONST:
+                            int val = (temp[0] as ParsedIntegerConst).Value;
+                            if (val != 0)
+                                return GenerateCCode(temp[1]);
+                            else
+                                return GenerateCCode(temp[2]);
+
+                        case ParsedValuesTypes.PARSEDSEXPR:
+                            result += GenerateCCode(temp[0]) + " ? " + GenerateCCode(temp[1]) + " : " + GenerateCCode(temp[2]);
+                            break;
+                        default:
+                            throw new Exception("CG.GenerateStandartCFunctionCall: Bad if condition!");
+                    }
+                    break;
+
+                case ">":
+                    if(temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad > !");
+                    result += "( " + GenerateCCode(temp[0]) + " > " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "<":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad < !");
+                    result += "( " + GenerateCCode(temp[0]) + " < " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case ">=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad >= !");
+                    result += "( " + GenerateCCode(temp[0]) + " >= " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "<=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad <= !");
+                    result += "( " + GenerateCCode(temp[0]) + " <= " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "=":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad = !");
+                    result += "( " + GenerateCCode(temp[0]) + " == " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "*":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad * !");
+                    result += "( " + GenerateCCode(temp[0]) + " * " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "/":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad / !");
+                    result += "( " + GenerateCCode(temp[0]) + " / " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "+":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad + !");
+                    result += "( " + GenerateCCode(temp[0]) + " + " + GenerateCCode(temp[1]) + " )";
+                    break;
+
+                case "-":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad - !");
+                    result += "( " + GenerateCCode(temp[0]) + " - " + GenerateCCode(temp[1]) + " )";
+                    break;
+            }
 
             return result;
         }
@@ -149,11 +285,11 @@ namespace LLCompiler.CodeGenerator
                 case VarType.Char:
                     return "char";
                 case VarType.String:
-                    throw new NotImplementedException();
+                    return "LL_String";
                 case VarType.List:
-                    throw new NotImplementedException();
+                    return "LL_List";
                 case VarType.Any:
-                    throw new NotImplementedException();
+                    return "LL_Any";
                 default:
                     throw new Exception("CD.GetTypeName: Unknown type!");
             }
@@ -170,11 +306,8 @@ namespace LLCompiler.CodeGenerator
             if (sexpr.Members[0].ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER)
             {
                 string funcName = (sexpr.Members[0] as ParsedIdentifier).Name;
-                foreach (var f in FuncDefs)
-                {
-                    if (f.Name == funcName)
-                        return f;
-                }
+                if (FuncDefs.ContainsKey(funcName))
+                    return FuncDefs[funcName];
                 throw new Exception("CG.FindFunction: Unknown symbol " + funcName + "!");
             }
             else
