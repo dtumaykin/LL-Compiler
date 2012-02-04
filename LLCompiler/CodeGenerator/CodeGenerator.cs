@@ -45,6 +45,19 @@ namespace LLCompiler.CodeGenerator
             }
         }
 
+        public string WriteCFunctionsToString()
+        {
+            string res = "";
+            foreach (var f in GeneratedCFuncTable.Keys)
+            {
+                GeneratedCFunction func = GeneratedCFuncTable[f];
+                res += func.CFuncPrototype;
+                res += func.CFuncBody + "\n";
+            }
+            return res;
+        }
+
+
         /// <summary>
         /// Generates C code of a function from a funcion definition.
         /// </summary>
@@ -150,17 +163,17 @@ namespace LLCompiler.CodeGenerator
                     }
                     else
                     {
-                        result += "( " + calledFuncName + "( ";
+                        result += calledFuncName + "( ";
 
                         bool x = false;
                         foreach (var a in temp)
                         {
-                            if (x) result += ",";
+                            if (x) result += ", ";
                             x = true;
                             result += GenerateCCode(a);
                         }
 
-                        result += "))";
+                        result += ")";
                     }
                     break;
                 case ParsedValuesTypes.PARSEDINTEGERCONST:
@@ -271,19 +284,19 @@ namespace LLCompiler.CodeGenerator
                 case "!=":
                     if (temp.Count != 2)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad != !");
-                    result += "( " + GenerateCCode(temp[0]) + " != " + GenerateCCode(temp[1]) + " )";
+                    result += "(" + GenerateCCode(temp[0]) + " != " + GenerateCCode(temp[1]) + ")";
                     break;
 
                 case "*":
                     if (temp.Count != 2)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad * !");
-                    result += "( " + GenerateCCode(temp[0]) + " * " + GenerateCCode(temp[1]) + " )";
+                    result += GenerateCCode(temp[0]) + " * " + GenerateCCode(temp[1]);
                     break;
 
                 case "/":
                     if (temp.Count != 2)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad / !");
-                    result += "( " + GenerateCCode(temp[0]) + " / " + GenerateCCode(temp[1]) + " )";
+                    result += GenerateCCode(temp[0]) + " / " + GenerateCCode(temp[1]);
                     break;
 
                 case "+":
@@ -301,25 +314,32 @@ namespace LLCompiler.CodeGenerator
                 case "car":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `car` call!");
-                    result += "( LL_Car(" + GenerateCCode(temp[0])  + "))";
+                    result += "LL_Car(" + GenerateCCode(temp[0])  + ")";
                     break;
 
                 case "cdr":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `cdr` call!");
-                    result += "( LL_Cdr(" + GenerateCCode(temp[0])  + "))";
+                    result += "LL_Cdr(" + GenerateCCode(temp[0])  + ")";
                     break;
 
                 case "null":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `null` call!");
-                    result += "( LL_Null(" + GenerateCCode(temp[0])  + "))";
+                    result += "LL_Null(" + GenerateCCode(temp[0])  + ")";
                     break;
+
+                case "cons":
+                    if (temp.Count != 2)
+                        throw new Exception("CG.GenerateStandartCFunctionCall: Bad `cons` call!");
+                    result += "LL_Cons(" + GenerateCCode(temp[0]) + ", "+ GenerateCCode(temp[1]) + ")";
+                    break;
+
 
                 case "atom":
                     if (temp.Count != 1)
                         throw new Exception("CG.GenerateStandartCFunctionCall: Bad `atom` call!");
-                    result += "( LL_Atom(" + GenerateCCode(temp[0])  + "))";
+                    result += "LL_Atom(" + GenerateCCode(temp[0])  + ")";
                     break;
             }
 
