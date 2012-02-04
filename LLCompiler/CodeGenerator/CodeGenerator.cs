@@ -10,13 +10,13 @@ namespace LLCompiler.CodeGenerator
 {
     public class CodeGenerator
     {
-        private Dictionary<string, FunctionDefinition> FuncDefs;
+        private Dictionary<string, Function> FuncDefs;
         private Dictionary<string, GeneratedCFunction> GeneratedCFuncTable;
 
         private const string wsp = " ";
         private const string nln = "\n";
 
-        public CodeGenerator(Dictionary<string, FunctionDefinition> funcs)
+        public CodeGenerator(Dictionary<string, Function> funcs)
         {
             this.FuncDefs = funcs;
             this.GeneratedCFuncTable = new Dictionary<string, GeneratedCFunction>();
@@ -49,7 +49,7 @@ namespace LLCompiler.CodeGenerator
         /// Generates C code of a function from a funcion definition.
         /// </summary>
         /// <param name="f">Function definition.</param>
-        private void GenerateCFunction(FunctionDefinition f)
+        private void GenerateCFunction(Function f)
         {
             // don't generate for library functions
             if (f.Body == null)
@@ -356,7 +356,7 @@ namespace LLCompiler.CodeGenerator
         /// </summary>
         /// <param name="sexpr"></param>
         /// <returns></returns>
-        private FunctionDefinition FindFunction(ParsedSExpr sexpr)
+        private Function FindFunction(ParsedSExpr sexpr)
         {
             if (sexpr.Members[0].ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER)
             {

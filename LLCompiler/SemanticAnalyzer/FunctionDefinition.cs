@@ -17,7 +17,7 @@ namespace LLCompiler.SemanticAnalyzer
         Nothing
     }
 
-    public class FunctionDefinition
+    public class Function
     {
         public string Name { get; set; }
 
@@ -27,7 +27,7 @@ namespace LLCompiler.SemanticAnalyzer
 
         public IParsedValue Body { get; set; }
 
-        public FunctionDefinition()
+        public Function()
         {
             RetType = VarType.Nothing;
         }

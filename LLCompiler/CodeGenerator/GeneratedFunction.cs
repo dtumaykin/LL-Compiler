@@ -8,7 +8,7 @@ namespace LLCompiler.CodeGenerator
 {
     public class GeneratedCFunction
     {
-        public FunctionDefinition FuncDef { get; set; }
+        public Function FuncDef { get; set; }
         public string CFuncPrototype { get; set; }
         public string CFuncBody { get; set; }
     }

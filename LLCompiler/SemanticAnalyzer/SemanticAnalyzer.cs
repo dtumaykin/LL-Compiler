@@ -8,11 +8,11 @@ namespace LLCompiler.SemanticAnalyzer
 {
     public class SemanticAnalyzer
     {
-        public Dictionary<string, FunctionDefinition> FuncTable;
+        public Dictionary<string, Function> FuncTable;
 
         public SemanticAnalyzer()
         {
-            FuncTable = new Dictionary<string, FunctionDefinition>();
+            FuncTable = new Dictionary<string, Function>();
             //FuncTablePopulated = false;
         }
 
@@ -31,7 +31,7 @@ namespace LLCompiler.SemanticAnalyzer
                     throw new Exception("Not a Func definition!");
 
                 ParsedSExpr pse = func as ParsedSExpr;
-                FunctionDefinition newFunc = new FunctionDefinition();
+                Function newFunc = new Function();
 
                 // not a defun
                 if (pse.Members[0].ParsedValueType != ParsedValuesTypes.PARSEDIDENTIFIER)
@@ -113,7 +113,7 @@ namespace LLCompiler.SemanticAnalyzer
             }
         }
 
-        private VarType DeriveIPVRetType(FunctionDefinition context, IParsedValue ipv)
+        private VarType DeriveIPVRetType(Function context, IParsedValue ipv)
         {
             var Result = VarType.Nothing;
             switch (ipv.ParsedValueType)
@@ -140,7 +140,7 @@ namespace LLCompiler.SemanticAnalyzer
         /// Derives function return types, basing on called functions return type.
         /// </summary>
         /// <param name="func"></param>
-        private void DeriveFuncRetType(FunctionDefinition func) 
+        private void DeriveFuncRetType(Function func) 
         {
             if (func.Body == null)
                 return;
@@ -153,7 +153,7 @@ namespace LLCompiler.SemanticAnalyzer
         /// </summary>
         /// <param name="func"></param>
         /// <returns>True, if func args type is changed</returns>
-        private bool DeriveFuncArgsType(FunctionDefinition func)
+        private bool DeriveFuncArgsType(Function func)
         {
             bool changed = false;
             foreach (var arg in func.Arguments.Keys.ToList())
@@ -191,7 +191,7 @@ namespace LLCompiler.SemanticAnalyzer
                 List<IParsedValue> temp = new List<IParsedValue>(pse.Members);
 
                 // get function
-                FunctionDefinition calledFunc = FindFunction(pse);
+                Function calledFunc = FindFunction(pse);
 
                 // remove function name
                 temp.RemoveAt(0);
@@ -234,7 +234,7 @@ namespace LLCompiler.SemanticAnalyzer
             if (call.ParsedValueType == ParsedValuesTypes.PARSEDSEXPR)
             {
                 var sexpr = call as ParsedSExpr;
-                FunctionDefinition func = FindFunction(sexpr);
+                Function func = FindFunction(sexpr);
                 List<VarType> callArgList = GetFuncCallArguments(sexpr);
                 List<VarType> funcArgList = func.Arguments.Values.ToList();
 
@@ -261,7 +261,7 @@ namespace LLCompiler.SemanticAnalyzer
         /// </summary>
         /// <param name="sexpr"></param>
         /// <returns></returns>
-        private FunctionDefinition FindFunction(ParsedSExpr sexpr)
+        private Function FindFunction(ParsedSExpr sexpr)
         {
             if (sexpr.Members[0].ParsedValueType == ParsedValuesTypes.PARSEDIDENTIFIER)
             {
@@ -328,9 +328,9 @@ namespace LLCompiler.SemanticAnalyzer
         /// </summary>
         private void InitFuncTable()
         {
-            FuncTable = new Dictionary<string, FunctionDefinition>();
+            FuncTable = new Dictionary<string, Function>();
 
-            FuncTable["+"] = new FunctionDefinition
+            FuncTable["+"] = new Function
             {
                 Name = "+",
                 RetType = VarType.Integer,
@@ -341,7 +341,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["-"] = new FunctionDefinition
+            FuncTable["-"] = new Function
             {
                 Name = "-",
                 RetType = VarType.Integer,
@@ -352,7 +352,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["*"] = new FunctionDefinition
+            FuncTable["*"] = new Function
             {
                 Name = "*",
                 RetType = VarType.Integer,
@@ -363,7 +363,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["/"] = new FunctionDefinition
+            FuncTable["/"] = new Function
             {
                 Name = "/",
                 RetType = VarType.Integer,
@@ -374,7 +374,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable[">"] = new FunctionDefinition
+            FuncTable[">"] = new Function
             {
                 Name = ">",
                 RetType = VarType.Integer,
@@ -385,7 +385,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable[">="] = new FunctionDefinition
+            FuncTable[">="] = new Function
             {
                 Name = ">=",
                 RetType = VarType.Integer,
@@ -396,7 +396,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["<"] = new FunctionDefinition
+            FuncTable["<"] = new Function
             {
                 Name = "<",
                 RetType = VarType.Integer,
@@ -407,7 +407,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["<="] = new FunctionDefinition
+            FuncTable["<="] = new Function
             {
                 Name = "<=",
                 RetType = VarType.Integer,
@@ -418,7 +418,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["="] = new FunctionDefinition
+            FuncTable["="] = new Function
             {
                 Name = "=",
                 RetType = VarType.Integer,
@@ -429,7 +429,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["!="] = new FunctionDefinition
+            FuncTable["!="] = new Function
             {
                 Name = "!=",
                 RetType = VarType.Integer,
@@ -440,7 +440,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["car"] = new FunctionDefinition
+            FuncTable["car"] = new Function
             {
                 Name = "car",
                 RetType = VarType.Any,
@@ -450,7 +450,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["cdr"] = new FunctionDefinition
+            FuncTable["cdr"] = new Function
             {
                 Name = "cdr",
                 RetType = VarType.List,
@@ -460,7 +460,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["null"] = new FunctionDefinition
+            FuncTable["null"] = new Function
             {
                 Name = "car",
                 RetType = VarType.Integer,
@@ -470,7 +470,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["atom"] = new FunctionDefinition
+            FuncTable["atom"] = new Function
             {
                 Name = "atom",
                 RetType = VarType.Integer,
@@ -481,7 +481,7 @@ namespace LLCompiler.SemanticAnalyzer
             };
 
             // from here down -> verify
-            FuncTable["if"] = new FunctionDefinition
+            FuncTable["if"] = new Function
             {
                 Name = "if",
                 RetType = VarType.Any,
@@ -493,7 +493,7 @@ namespace LLCompiler.SemanticAnalyzer
                 Body = null
             };
 
-            FuncTable["cons"] = new FunctionDefinition
+            FuncTable["cons"] = new Function
             {
                 Name = "cons",
                 RetType = VarType.Any,

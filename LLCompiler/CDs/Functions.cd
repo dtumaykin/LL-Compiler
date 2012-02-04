@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="LLCompiler.SemanticAnalyzer.Function">
+    <Position X="0.5" Y="0.5" Width="2.75" />
+    <Compartments>
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAABIAQAAAAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>SemanticAnalyzer\FunctionDefinition.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="LLCompiler.CodeGenerator.GeneratedCFunction">
+    <Position X="4.25" Y="3.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAEAAAAAAACAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>CodeGenerator\GeneratedFunction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Enum Name="LLCompiler.SemanticAnalyzer.VarType">
+    <Position X="0.5" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ICAAAAAAAAAAAAAAQAAAAAAAAAAAAiAAAAAAAAAAAAI=</HashCode>
+      <FileName>SemanticAnalyzer\FunctionDefinition.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Tahoma" Size="8.25" />
+</ClassDiagram>

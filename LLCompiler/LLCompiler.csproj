@@ -50,11 +50,12 @@
     <Compile Include="SemanticAnalyzer\FunctionDefinition.cs" />
     <Compile Include="SemanticAnalyzer\SemanticAnalyzer.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <None Include="CDs\ITokenLexer.cd" />
+    <None Include="CDs\Functions.cd" />
     <None Include="CDs\IParsedValue.cd" />
+    <None Include="CDs\ITokenLexer.cd" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
