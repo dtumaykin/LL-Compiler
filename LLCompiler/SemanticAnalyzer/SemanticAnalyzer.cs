@@ -119,7 +119,10 @@ namespace LLCompiler.SemanticAnalyzer
             switch (ipv.ParsedValueType)
             {
                 case ParsedValuesTypes.PARSEDCHARCONST: return VarType.Char;
-                case ParsedValuesTypes.PARSEDIDENTIFIER: return context.Arguments[(ipv as ParsedIdentifier).Name];
+                case ParsedValuesTypes.PARSEDIDENTIFIER: 
+                    var an = (ipv as ParsedIdentifier).Name;
+                    if (an == "nil" || an == "T") return VarType.Any;
+                    return context.Arguments[(ipv as ParsedIdentifier).Name];
                 case ParsedValuesTypes.PARSEDINTEGERCONST: return VarType.Integer;
                 case ParsedValuesTypes.PARSEDSTRINGCONST: return VarType.String;
                 case ParsedValuesTypes.PARSEDCOND:                    
