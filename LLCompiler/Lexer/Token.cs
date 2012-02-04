@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System;//
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +27,11 @@ namespace LLCompiler.Lexer
         {
             get { return  TokenTypes.PARANTHESE;}
         }
+
+        public override string ToString()
+        {
+            return "ParentheseToken { isOpening = \"" + isOpening.ToString() + "\" }";
+        }
     }
 
     class IntegerConstantToken : IToken
@@ -36,6 +41,11 @@ namespace LLCompiler.Lexer
         TokenTypes IToken.TokenType
         {
             get { return TokenTypes.INTEGERCONST; }
+        }
+
+        public override string ToString()
+        {
+            return "IntegerConstantToken { Value = \"" + Value.ToString()  + "\" }";
         }
     }
 
@@ -47,6 +57,11 @@ namespace LLCompiler.Lexer
         {
             get { return TokenTypes.CHARCONST; }
         }
+
+        public override string ToString()
+        {
+            return "CharConstantToken { Value = \"" + Value + "\" }";
+        }
     }
 
     class StringConstantToken : IToken
@@ -57,6 +72,11 @@ namespace LLCompiler.Lexer
         {
             get { return TokenTypes.STRINGCONST; }
         }
+
+        public override string ToString()
+        {
+            return "StringConstantToken { Value = \"" + Value + "\" }";
+        }
     }
 
     class IdentifierToken : IToken
@@ -66,6 +86,11 @@ namespace LLCompiler.Lexer
         TokenTypes IToken.TokenType
         {
             get { return TokenTypes.IDENTIFIER; }
+        }
+
+        public override string ToString()
+        {
+            return "IdentifierToken { Name = \"" + Name + "\" }";
         }
     }
 }
